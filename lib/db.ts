@@ -1,14 +1,8 @@
 import mongoose from "mongoose";
 
-// ─── Validate env at import time ──────────────────────────────────────────────
-// Throwing here (not inside connectDB) means a bad deploy fails loudly on cold
-// start instead of silently returning 500s at runtime.
+// MONGODB_URI is read inside connectDB() so it's only evaluated at request time,
+// not during Next.js build/static analysis (which would throw if env var is absent).
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  throw new Error(
-    "MONGODB_URI is not defined. Add it to .env.local (dev) or Vercel env vars (prod)."
-  );
-}
 
 // ─── Connection pool options ───────────────────────────────────────────────────
 // Serverless functions spin up many short-lived Node processes.  A generous
@@ -78,6 +72,13 @@ export function isConnected(): boolean {
  *   }
  */
 export async function connectDB(): Promise<typeof mongoose> {
+  // ── Validate env at request time (not build time) ───────────────────────────
+  if (!MONGODB_URI) {
+    throw new Error(
+      "MONGODB_URI is not defined. Add it to .env.local (dev) or Vercel env vars (prod)."
+    );
+  }
+
   // ── Fast path: already connected in this container ──────────────────────────
   if (cache.conn && isConnected()) {
     return cache.conn;
