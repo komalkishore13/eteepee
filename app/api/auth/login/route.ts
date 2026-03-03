@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[LOGIN_ERROR]", error);
     return NextResponse.json(
-      { success: false, message: "Something went wrong. Please try again." },
+      { success: false, message: "Something went wrong. Please try again.", debug: (error as Error).message },
       { status: 500 }
     );
   }
