@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
 const CATEGORIES = [
@@ -26,8 +26,12 @@ const CATEGORIES = [
   "New to you",
 ];
 
-export default function CategoryPills() {
-  const [active, setActive] = useState("All");
+interface CategoryPillsProps {
+  active: string;
+  onSelect: (category: string) => void;
+}
+
+export default function CategoryPills({ active, onSelect }: CategoryPillsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   function scroll(direction: "left" | "right") {
@@ -53,13 +57,13 @@ export default function CategoryPills() {
       {/* Pills scroll area */}
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto scrollbar-hide flex-1"
+        className="flex gap-2 overflow-x-auto flex-1"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActive(cat)}
+            onClick={() => onSelect(cat)}
             className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
               active === cat
                 ? "bg-[#0f0f0f] text-white"

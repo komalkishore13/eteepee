@@ -1,16 +1,47 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import type { Video } from "@/types";
 
 interface VideoCardProps {
   video: Video;
+  compact?: boolean;
 }
 
-export default function VideoCard({ video }: VideoCardProps) {
+export default function VideoCard({ video, compact = false }: VideoCardProps) {
+  if (compact) {
+    return (
+      <Link href={`/watch/${video.id}`} className="flex gap-2 group">
+        <div className="relative w-40 shrink-0 aspect-video rounded-lg overflow-hidden bg-[#f2f2f2]">
+          <Image
+            src={video.thumbnail}
+            alt={video.title}
+            fill
+            sizes="160px"
+            className="object-cover"
+            unoptimized
+          />
+          <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1 py-0.5 rounded">
+            {video.duration}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium text-[#0f0f0f] line-clamp-2 leading-5 group-hover:text-[#065fd4]">
+            {video.title}
+          </h4>
+          <p className="text-xs text-[#606060] mt-1">{video.channelName}</p>
+          <p className="text-xs text-[#606060]">
+            {video.views} · {video.uploadedAt}
+          </p>
+        </div>
+      </Link>
+    );
+  }
+
   return (
-    <div className="group cursor-pointer">
+    <Link href={`/watch/${video.id}`} className="group cursor-pointer block">
       {/* Thumbnail */}
       <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-[#f2f2f2]">
         <Image
@@ -63,6 +94,6 @@ export default function VideoCard({ video }: VideoCardProps) {
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

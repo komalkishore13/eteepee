@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   Flame,
@@ -27,20 +29,26 @@ import {
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
+  href?: string;
   active?: boolean;
-  onClick?: () => void;
 }
 
-function NavItem({ icon, label, active, onClick }: NavItemProps) {
+function NavItem({ icon, label, href, active }: NavItemProps) {
+  const className = `flex items-center gap-6 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+    active ? "bg-[#f2f2f2] font-semibold" : "hover:bg-[#f2f2f2] text-[#0f0f0f]"
+  }`;
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        <span className="w-6 flex items-center justify-center shrink-0">{icon}</span>
+        <span className="truncate">{label}</span>
+      </Link>
+    );
+  }
+
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-6 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-        active
-          ? "bg-[#f2f2f2] font-semibold"
-          : "hover:bg-[#f2f2f2] text-[#0f0f0f]"
-      }`}
-    >
+    <button className={className}>
       <span className="w-6 flex items-center justify-center shrink-0">{icon}</span>
       <span className="truncate">{label}</span>
     </button>
@@ -60,13 +68,16 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export default function Sidebar() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <aside className="hidden md:flex flex-col w-60 shrink-0 overflow-y-auto pb-4 px-1 pt-2 h-full border-r border-transparent">
       {/* Main nav */}
       <nav>
-        <NavItem icon={<Home size={20} />} label="Home" active />
-        <NavItem icon={<Repeat2 size={20} />} label="Shorts" />
-        <NavItem icon={<PlaySquare size={20} />} label="Subscriptions" />
+        <NavItem icon={<Home size={20} />} label="Home" href="/" active={isHome} />
+        <NavItem icon={<Repeat2 size={20} />} label="Shorts" href="/shorts" />
+        <NavItem icon={<PlaySquare size={20} />} label="Subscriptions" href="/subscriptions" />
       </nav>
 
       <SectionDivider />

@@ -1,5 +1,7 @@
 export interface Video {
   id: string;
+  youtubeId: string;
+  category: string;
   thumbnail: string;
   title: string;
   channelName: string;
@@ -8,6 +10,7 @@ export interface Video {
   uploadedAt: string;
   duration: string;
   channelVerified?: boolean;
+  description?: string;
 }
 
 export interface UserSession {

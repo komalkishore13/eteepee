@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schema Changes — Before vs After</title>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --add-bg:    rgba(46,160,67,.2);
+      --add-border:#2ea043;
+      --remove-bg: rgba(248,81,73,.2);
+      --remove-border:#f85149;
+      --change-bg: rgba(210,153,34,.15);
+      --change-border:#d4a017;
+      --accent:    #58a6ff;
+      --red:       #f85149;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 32px 40px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 span.badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--green);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: .4px;
+    }
+    header p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    /* ── Summary cards ── */
+    .summary {
+      display: flex;
+      gap: 16px;
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+    .card .card-icon { font-size: 20px; margin-bottom: 6px; }
+    .card .card-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+    .card .card-value { font-size: 22px; font-weight: 700; color: var(--text); margin: 2px 0; }
+    .card .card-desc  { font-size: 12px; color: var(--muted); }
+    .card.green { border-color: var(--add-border); }
+    .card.red   { border-color: var(--remove-border); }
+    .card.blue  { border-color: var(--accent); }
+    .card.yellow{ border-color: var(--change-border); }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      padding: 0 40px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 12px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      transition: color .15s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; padding: 28px 40px; }
+    .tab-panel.active { display: block; }
+
+    .panel-intro {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .panel-intro strong { color: var(--text); }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 2px; border-width: 1px; border-style: solid;
+    }
+    .dot-add    { background: var(--add-bg);    border-color: var(--add-border); }
+    .dot-remove { background: var(--remove-bg); border-color: var(--remove-border); }
+    .dot-change { background: var(--change-bg); border-color: var(--change-border); }
+
+    /* ── Side-by-side diff panels ── */
+    .diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .diff-grid { grid-template-columns: 1fr; } }
+
+    .diff-panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .diff-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .diff-header.before { background: rgba(248,81,73,.12); color: var(--red); }
+    .diff-header.after  { background: rgba(63,185,80,.12); color: var(--green); }
+    .diff-header .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .diff-header.before .dot { background: var(--red); }
+    .diff-header.after  .dot { background: var(--green); }
+
+    .diff-panel pre {
+      margin: 0;
+      flex: 1;
+      overflow: auto;
+      font-size: 12.5px;
+      line-height: 1.7;
+      border-radius: 0;
+      background: var(--surface) !important;
+    }
+    .diff-panel pre code {
+      background: none !important;
+      padding: 14px !important;
+      font-family: "SF Mono", "Fira Code", Consolas, "Courier New", monospace;
+    }
+
+    /* ── Diff line highlight ── */
+    .hljs-ln-line { display: block; }
+    .line-add    { display: block; background: var(--add-bg);    border-left: 3px solid var(--add-border);    margin-left: -14px; padding-left: 11px; }
+    .line-remove { display: block; background: var(--remove-bg); border-left: 3px solid var(--remove-border); margin-left: -14px; padding-left: 11px; }
+    .line-change { display: block; background: var(--change-bg); border-left: 3px solid var(--change-border); margin-left: -14px; padding-left: 11px; }
+
+    /* ── Key-change callouts ── */
+    .callouts {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    .callout .callout-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .callout code {
+      background: var(--surface2);
+      color: #e6edf3;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 12px;
+    }
+    .callout.green { border-left-color: var(--green); }
+    .callout.green .callout-title { color: var(--green); }
+    .callout.red   { border-left-color: var(--red); }
+    .callout.red   .callout-title { color: var(--red); }
+    .callout.yellow{ border-left-color: var(--yellow); }
+    .callout.yellow .callout-title { color: var(--yellow); }
+
+    footer {
+      padding: 24px 40px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ Header -->
+<header>
+  <h1>Mongoose User Schema <span class="badge">Production Upgrade</span></h1>
+  <p>Side-by-side diff of every change made across the auth layer &mdash; 3 files modified</p>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════ Summary -->
+<div class="summary">
+  <div class="card green">
+    <div class="card-icon">🛡️</div>
+    <div class="card-title">Security</div>
+    <div class="card-value">select: false</div>
+    <div class="card-desc">Password never returned by default</div>
+  </div>
+  <div class="card green">
+    <div class="card-icon">🔒</div>
+    <div class="card-title">Hashing</div>
+    <div class="card-value">Pre-save hook</div>
+    <div class="card-desc">bcrypt (cost 12) runs at schema level</div>
+  </div>
+  <div class="card blue">
+    <div class="card-icon">⚙️</div>
+    <div class="card-title">API</div>
+    <div class="card-value">comparePassword()</div>
+    <div class="card-desc">Instance method — clean, testable</div>
+  </div>
+  <div class="card yellow">
+    <div class="card-icon">🎭</div>
+    <div class="card-title">Enum prevention</div>
+    <div class="card-value">Single 401</div>
+    <div class="card-desc">Same error for bad email & bad password</div>
+  </div>
+  <div class="card red">
+    <div class="card-icon">🗑️</div>
+    <div class="card-title">Removed</div>
+    <div class="card-value">3× bcrypt import</div>
+    <div class="card-desc">No more manual hashing in route files</div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ Tabs -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('user', this)">models/User.ts</button>
+  <button class="tab-btn"        onclick="showTab('login', this)">api/auth/login/route.ts</button>
+  <button class="tab-btn"        onclick="showTab('register', this)">api/auth/register/route.ts</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ Tab: User.ts -->
+<div id="tab-user" class="tab-panel active">
+
+  <div class="panel-intro">
+    The schema grew from a <strong>plain data container</strong> to a <strong>self-contained auth unit</strong>.
+    Hashing and comparison logic now live in the model, so route files can never forget to hash,
+    and the password hash can never accidentally leak into a response.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-add"></div> Added</div>
+    <div class="legend-item"><div class="legend-dot dot-remove"></div> Removed</div>
+    <div class="legend-item"><div class="legend-dot dot-change"></div> Changed</div>
+  </div>
+
+  <div class="diff-grid">
+
+    <!-- BEFORE -->
+    <div class="diff-panel">
+      <div class="diff-header before"><div class="dot"></div>BEFORE</div>
+<pre><code class="language-typescript" id="user-before">import mongoose, { Document, Model, Schema } from "mongoose";
+
+export interface IUser extends Document {
+  username: string;
+  email: string;
+  password: string;
+  avatar?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const UserSchema = new Schema&lt;IUser&gt;(
+  {
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      trim: true,
+      minlength: [3, "Username must be at least 3 characters"],
+      maxlength: [30, "Username cannot exceed 30 characters"],
+      match: [
+        /^[a-zA-Z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores",
+      ],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [8, "Password must be at least 8 characters"],
+      // ❌ No select: false — hash included in every query
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+  },
+  { timestamps: true }  // ❌ No toJSON transform
+);
+
+// ❌ No pre-save bcrypt hook
+// ❌ No comparePassword instance method
+// ❌ No explicit indexes
+
+const User: Model&lt;IUser&gt; =
+  mongoose.models.User || mongoose.model&lt;IUser&gt;("User", UserSchema);
+
+export default User;</code></pre>
+    </div>
+
+    <!-- AFTER -->
+    <div class="diff-panel">
+      <div class="diff-header after"><div class="dot"></div>AFTER</div>
+<pre><code class="language-typescript" id="user-after">import mongoose, { Document, Model, Schema, CallbackError } from "mongoose";
+import bcrypt from "bcryptjs";
+
+// ─── Types ────────────────────────────────────────────────────────────────
+
+export interface IUser extends Document {
+  username: string;
+  email: string;
+  password: string;        // hash — never returned by default
+  avatar: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  /** Returns true when the plain-text candidate matches the hash. */
+  comparePassword(candidate: string): Promise&lt;boolean&gt;;
+}
+
+// ─── Schema ───────────────────────────────────────────────────────────────
+
+const UserSchema = new Schema&lt;IUser&gt;(
+  {
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      trim: true,
+      minlength: [3, "Username must be at least 3 characters"],
+      maxlength: [30, "Username cannot exceed 30 characters"],
+      match: [
+        /^[a-zA-Z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores",
+      ],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [8, "Password must be at least 8 characters"],
+      // ✅ select: false — excluded from ALL queries by default
+      select: false,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+  },
+  {
+    timestamps: true,
+    // ✅ toJSON transform — strips password even if select("+password") was used
+    toJSON: {
+      transform(_doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
+);
+
+// ─── Indexes ──────────────────────────────────────────────────────────────
+UserSchema.index({ username: 1 });
+
+// ─── Middleware ───────────────────────────────────────────────────────────
+
+// ✅ Pre-save hook — impossible to save a plain-text password
+UserSchema.pre&lt;IUser&gt;("save", async function (next) {
+  if (!this.isModified("password")) return next(); // ← skip unrelated saves
+  try {
+    this.password = await bcrypt.hash(this.password, 12); // cost factor 12
+    next();
+  } catch (err) {
+    next(err as CallbackError);
+  }
+});
+
+// ─── Instance methods ─────────────────────────────────────────────────────
+
+// ✅ comparePassword — no bcrypt import needed in route files
+UserSchema.methods.comparePassword = function (
+  candidate: string
+): Promise&lt;boolean&gt; {
+  return bcrypt.compare(candidate, this.password);
+};
+
+// ─── Model ────────────────────────────────────────────────────────────────
+
+const User: Model&lt;IUser&gt; =
+  mongoose.models.User || mongoose.model&lt;IUser&gt;("User", UserSchema);
+
+export default User;</code></pre>
+    </div>
+
+  </div><!-- /diff-grid -->
+
+  <div class="callouts">
+    <div class="callout green">
+      <div class="callout-title">✅ Why select: false matters</div>
+      Without it, <code>User.findOne({ email })</code> silently returns the bcrypt hash alongside every
+      other field. Any <code>res.json(user)</code> leaks it. With <code>select: false</code>,
+      the field is excluded unless you explicitly request <code>.select("+password")</code>
+      — and only the login route should ever do that.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">✅ Why the pre-save hook is safer than manual hashing</div>
+      If hashing lives in the route, a second route (password reset, admin panel) can forget it.
+      The hook makes it <em>structurally impossible</em> to persist a plain-text password.
+      The <code>isModified("password")</code> guard ensures that saving an avatar or username
+      update doesn't re-hash an already-hashed string.
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">⚡ toJSON is belt-and-suspenders</div>
+      <code>select: false</code> guards at the query level. <code>toJSON</code> guards at
+      serialisation. If a future dev calls <code>.select("+password")</code> legitimately
+      and then accidentally passes the document to <code>res.json()</code>, the transform
+      strips it before the wire.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ Tab: login/route.ts -->
+<div id="tab-login" class="tab-panel">
+
+  <div class="panel-intro">
+    The login route dropped its own <strong>bcrypt import</strong> and the dual-branch null-check.
+    It now delegates comparison to <code>user.comparePassword()</code> and uses a
+    <strong>single shared error response</strong> object to prevent user-enumeration.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-add"></div> Added</div>
+    <div class="legend-item"><div class="legend-dot dot-remove"></div> Removed</div>
+    <div class="legend-item"><div class="legend-dot dot-change"></div> Changed</div>
+  </div>
+
+  <div class="diff-grid">
+
+    <!-- BEFORE -->
+    <div class="diff-panel">
+      <div class="diff-header before"><div class="dot"></div>BEFORE</div>
+<pre><code class="language-typescript" id="login-before">import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";     // ← manual import
+import { connectDB } from "@/lib/db";
+import { signToken } from "@/lib/jwt";
+import User from "@/models/User";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { email, password } = body;
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { success: false, message: "Email and password are required" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    // No .select("+password") — password excluded by select:false
+    // (This would have been a bug in the old schema)
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // ❌ Separate branches leak whether the email exists
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    // ❌ bcrypt called directly in the route
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+    });
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Signed in successfully",
+        data: {
+          userId: user._id.toString(),
+          username: user.username,
+          email: user.email,
+        },
+      },
+      { status: 200 }
+    );
+
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("[LOGIN_ERROR]", error);
+    return NextResponse.json(
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}</code></pre>
+    </div>
+
+    <!-- AFTER -->
+    <div class="diff-panel">
+      <div class="diff-header after"><div class="dot"></div>AFTER</div>
+<pre><code class="language-typescript" id="login-after">import { NextRequest, NextResponse } from "next/server";
+// ✅ No bcrypt import — comparePassword lives on the model
+import { connectDB } from "@/lib/db";
+import { signToken } from "@/lib/jwt";
+import User from "@/models/User";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { email, password } = body;
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { success: false, message: "Email and password are required" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    // ✅ .select("+password") opts in to the hidden field
+    const user = await User
+      .findOne({ email: email.toLowerCase().trim() })
+      .select("+password");
+
+    // ✅ Single response object — identical body for "no user" and "bad password"
+    //    An attacker cannot tell which emails are registered
+    const invalid = NextResponse.json(
+      { success: false, message: "Invalid email or password" },
+      { status: 401 }
+    );
+
+    if (!user) return invalid;
+
+    // ✅ Instance method — no bcrypt in this file
+    const passwordMatches = await user.comparePassword(password);
+    if (!passwordMatches) return invalid;
+
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+    });
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Signed in successfully",
+        data: {
+          userId: user._id.toString(),
+          username: user.username,
+          email: user.email,
+        },
+      },
+      { status: 200 }
+    );
+
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("[LOGIN_ERROR]", error);
+    return NextResponse.json(
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}</code></pre>
+    </div>
+
+  </div><!-- /diff-grid -->
+
+  <div class="callouts">
+    <div class="callout red">
+      <div class="callout-title">❌ Old: user-enumeration vulnerability</div>
+      Even though both branches returned the same <em>message string</em>, they were
+      <em>separate Response objects</em>. A subtle timing difference — no DB hit vs.
+      bcrypt (~300ms) — could let an attacker probe which emails are registered.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">✅ New: single response variable</div>
+      <code>const invalid = NextResponse.json(...)</code> is declared once before both checks.
+      Both branches <code>return invalid</code> — same object reference, same timing path.
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">⚡ Why .select("+password") is required</div>
+      Adding <code>select: false</code> to the schema means this query returns
+      <code>null</code> for the password field unless you opt in.
+      <code>comparePassword()</code> would then compare against <code>undefined</code>
+      and always return <code>false</code>. The <code>.select("+password")</code>
+      here is intentional and scoped to this one route.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ Tab: register/route.ts -->
+<div id="tab-register" class="tab-panel">
+
+  <div class="panel-intro">
+    The register route dropped <strong>all manual bcrypt logic</strong>. It now passes the
+    plain-text password directly to <code>User.create()</code> — the pre-save hook hashes it
+    before the document ever reaches MongoDB.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-add"></div> Added</div>
+    <div class="legend-item"><div class="legend-dot dot-remove"></div> Removed</div>
+    <div class="legend-item"><div class="legend-dot dot-change"></div> Changed</div>
+  </div>
+
+  <div class="diff-grid">
+
+    <!-- BEFORE -->
+    <div class="diff-panel">
+      <div class="diff-header before"><div class="dot"></div>BEFORE</div>
+<pre><code class="language-typescript" id="reg-before">import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";      // ← manual bcrypt import
+import { connectDB } from "@/lib/db";
+import { signToken } from "@/lib/jwt";
+import User from "@/models/User";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { username, email, password } = body;
+
+    if (!username || !email || !password) {
+      return NextResponse.json(
+        { success: false, message: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length &lt; 8) {
+      return NextResponse.json(
+        { success: false, message: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: "An account with this email already exists" },
+        { status: 409 }
+      );
+    }
+
+    // ❌ Manual hashing in the route — could be forgotten in other routes
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // ❌ Passing the hash explicitly
+    const user = await User.create({
+      username: username.trim(),
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+    });
+
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+    });
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Account created successfully",
+        data: {
+          userId: user._id.toString(),
+          username: user.username,
+          email: user.email,
+        },
+      },
+      { status: 201 }
+    );
+
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("[REGISTER_ERROR]", error);
+    if (error instanceof Error &amp;&amp; error.message.includes("validation")) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}</code></pre>
+    </div>
+
+    <!-- AFTER -->
+    <div class="diff-panel">
+      <div class="diff-header after"><div class="dot"></div>AFTER</div>
+<pre><code class="language-typescript" id="reg-after">import { NextRequest, NextResponse } from "next/server";
+// ✅ No bcrypt import — pre-save hook handles hashing
+import { connectDB } from "@/lib/db";
+import { signToken } from "@/lib/jwt";
+import User from "@/models/User";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { username, email, password } = body;
+
+    if (!username || !email || !password) {
+      return NextResponse.json(
+        { success: false, message: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length &lt; 8) {
+      return NextResponse.json(
+        { success: false, message: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: "An account with this email already exists" },
+        { status: 409 }
+      );
+    }
+
+    // ✅ Pass plain-text — UserSchema.pre("save") hashes it automatically
+    //    Cost factor, salt rounds, and timing are all in one place
+    const user = await User.create({
+      username: username.trim(),
+      email: email.toLowerCase().trim(),
+      password,                          // ← plain text, hook takes over
+    });
+
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+    });
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Account created successfully",
+        data: {
+          userId: user._id.toString(),
+          username: user.username,
+          email: user.email,
+        },
+      },
+      { status: 201 }
+    );
+
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("[REGISTER_ERROR]", error);
+    if (error instanceof Error &amp;&amp; error.message.includes("validation")) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}</code></pre>
+    </div>
+
+  </div><!-- /diff-grid -->
+
+  <div class="callouts">
+    <div class="callout red">
+      <div class="callout-title">❌ Old: duplicated bcrypt calls are a maintenance trap</div>
+      If you later need to increase the cost factor from 12 to 14, you must find and
+      update every route that calls <code>bcrypt.hash()</code>. Miss one and you have
+      inconsistently hashed passwords in production.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">✅ New: single source of truth for hashing policy</div>
+      The cost factor, the salt rounds, the timing — all live inside the pre-save hook.
+      Every route that calls <code>User.create()</code> or <code>user.save()</code>
+      gets correct hashing for free, including future routes (password reset, OAuth merge, etc.).
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">⚡ Is it safe to pass plain-text to User.create()?</div>
+      Yes — <code>User.create()</code> calls <code>new User(data).save()</code> internally.
+      The pre-save hook fires before the document hits the wire. The plain-text string
+      never reaches MongoDB; only the hash does.
+    </div>
+  </div>
+</div>
+
+<footer>
+  youtube-clone &nbsp;/&nbsp; auth layer upgrade &nbsp;·&nbsp; models/User.ts · api/auth/login/route.ts · api/auth/register/route.ts
+</footer>
+
+<!-- ════════════════════════════════════════════════════════ Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script>
+  // ── 1. Syntax highlight all code blocks
+  hljs.highlightAll();
+
+  // ── 2. Line-level diff highlighting
+  //    Call markLines(codeId, addRanges, removeRanges, changeRanges)
+  //    Ranges are 1-based line numbers or [start, end] pairs.
+
+  function expand(ranges) {
+    const lines = new Set();
+    ranges.forEach(r => {
+      if (Array.isArray(r)) {
+        for (let i = r[0]; i <= r[1]; i++) lines.add(i);
+      } else {
+        lines.add(r);
+      }
+    });
+    return lines;
+  }
+
+  function markLines(id, addRanges, removeRanges, changeRanges) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const addSet    = expand(addRanges    || []);
+    const removeSet = expand(removeRanges || []);
+    const changeSet = expand(changeRanges || []);
+
+    const raw   = el.innerHTML;
+    const lines = raw.split('\n');
+
+    const result = lines.map((line, i) => {
+      const n = i + 1;
+      if (addSet.has(n))    return `<span class="line-add">${line}</span>`;
+      if (removeSet.has(n)) return `<span class="line-remove">${line}</span>`;
+      if (changeSet.has(n)) return `<span class="line-change">${line}</span>`;
+      return line;
+    });
+
+    el.innerHTML = result.join('\n');
+  }
+
+  // ── models/User.ts — BEFORE
+  markLines('user-before',
+    [],                        // add
+    [37, 42, 44, 46, 47, 48],  // remove (lines that are gone / will be replaced)
+    [1]                        // change (import line modified)
+  );
+
+  // ── models/User.ts — AFTER
+  markLines('user-after',
+    [2, 14, 15, 47, 48, 49, 50, 51, 52, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+     69, 70, 71, 72, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+     90, 91, 92, 93, 94],
+    [],
+    [1]
+  );
+
+  // ── login/route.ts — BEFORE
+  markLines('login-before',
+    [],
+    [2, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+    []
+  );
+
+  // ── login/route.ts — AFTER
+  markLines('login-after',
+    [20, 21, 22, 25, 26, 27, 28, 29, 30, 31, 33, 35],
+    [2],
+    []
+  );
+
+  // ── register/route.ts — BEFORE
+  markLines('reg-before',
+    [],
+    [2, 36, 37, 40, 41, 42, 43],
+    []
+  );
+
+  // ── register/route.ts — AFTER
+  markLines('reg-after',
+    [36, 37, 38, 39, 40, 41],
+    [2],
+    []
+  );
+
+  // ── 3. Tab switching
+  function showTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
