@@ -102,9 +102,8 @@ export default function Sidebar() {
     >
       {/* ── Top nav ── */}
       <nav>
-        <NavItem icon={<Home size={20} />}      label="Home"          href="/"              active={isHome} collapsed={collapsed} />
-        <NavItem icon={<Repeat2 size={20} />}   label="Shorts"        href="/shorts"        collapsed={collapsed} />
-        <NavItem icon={<PlaySquare size={20} />} label="Subscriptions" href="/subscriptions" collapsed={collapsed} />
+        <NavItem icon={<Home size={20} />}    label="Home"   href="/"       active={isHome} collapsed={collapsed} />
+        <NavItem icon={<Repeat2 size={20} />} label="Shorts" href="/shorts" collapsed={collapsed} />
       </nav>
 
       {/* Everything below hidden when collapsed */}
