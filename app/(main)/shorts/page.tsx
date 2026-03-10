@@ -62,6 +62,7 @@ export default function ShortsPage() {
   const goToNext = useCallback(() => setCurrentIndex(p => Math.min(p + 1, shorts.length - 1)), []);
   const goPrev   = useCallback(() => setCurrentIndex(p => Math.max(p - 1, 0)), []);
 
+  // Keyboard navigation
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") goToNext();
@@ -69,6 +70,21 @@ export default function ShortsPage() {
     };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
+  }, [goToNext, goPrev]);
+
+  // Scroll wheel navigation (debounced)
+  useEffect(() => {
+    let lastScroll = 0;
+    const fn = (e: WheelEvent) => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastScroll < 600) return;
+      lastScroll = now;
+      if (e.deltaY > 0) goToNext();
+      else               goPrev();
+    };
+    window.addEventListener("wheel", fn, { passive: false });
+    return () => window.removeEventListener("wheel", fn);
   }, [goToNext, goPrev]);
 
   const current    = shorts[currentIndex];
