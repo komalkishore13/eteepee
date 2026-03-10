@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface SidebarContextType {
   collapsed: boolean;
@@ -16,6 +16,14 @@ const SidebarContext = createContext<SidebarContextType>({
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+
+  // On mobile, start with sidebar hidden
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setCollapsed(true);
+    }
+  }, []);
+
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((c) => !c), setCollapsed }}>
       {children}

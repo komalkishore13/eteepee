@@ -90,7 +90,7 @@ function SectionDivider() {
 export default function Sidebar() {
   const pathname  = usePathname();
   const isHome    = pathname === "/";
-  const { collapsed } = useSidebar();
+  const { collapsed, setCollapsed } = useSidebar();
 
   const [youExpanded,       setYouExpanded]       = useState(true);
   const [exploreExpanded,   setExploreExpanded]   = useState(false);
@@ -110,10 +110,25 @@ export default function Sidebar() {
   };
 
   return (
+    <>
+      {/* Mobile backdrop — tap to close */}
+      {!collapsed && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
+
     <aside
-      className={`sidebar hidden md:flex flex-col shrink-0 overflow-y-auto pb-4 px-1 pt-2 h-full border-r border-transparent transition-[width] duration-200 ease-in-out ${
-        collapsed ? "w-[72px]" : "w-60"
-      }`}
+      className={`sidebar flex flex-col shrink-0 overflow-y-auto pb-4 px-1 pt-2 bg-white
+        fixed top-14 left-0 h-[calc(100vh-56px)] z-40
+        md:relative md:top-0 md:h-full md:z-auto md:bg-transparent
+        border-r border-transparent
+        transition-[transform,width] duration-200 ease-in-out
+        ${collapsed
+          ? "-translate-x-full md:translate-x-0 w-60 md:w-[72px]"
+          : "translate-x-0 w-60"
+        }`}
     >
       {/* ── Top nav ── */}
       <nav>
@@ -345,5 +360,6 @@ export default function Sidebar() {
         </>
       )}
     </aside>
+    </>
   );
 }
