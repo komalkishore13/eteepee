@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -31,6 +31,8 @@ import {
   ShoppingBag,
   Film,
   User,
+  X,
+  Check,
 } from "lucide-react";
 import { useSidebar } from "@/components/youtube/SidebarContext";
 import Image from "next/image";
@@ -93,6 +95,19 @@ export default function Sidebar() {
   const [youExpanded,       setYouExpanded]       = useState(true);
   const [exploreExpanded,   setExploreExpanded]   = useState(false);
   const [subsExpanded,      setSubsExpanded]      = useState(true);
+  const [showFeedback,      setShowFeedback]      = useState(false);
+  const [feedbackText,      setFeedbackText]      = useState("");
+  const [feedbackSent,      setFeedbackSent]      = useState(false);
+
+  const sendFeedback = () => {
+    if (!feedbackText.trim()) return;
+    setFeedbackSent(true);
+    setTimeout(() => {
+      setShowFeedback(false);
+      setFeedbackText("");
+      setFeedbackSent(false);
+    }, 1800);
+  };
 
   return (
     <aside
@@ -226,11 +241,96 @@ export default function Sidebar() {
           <SectionDivider />
 
           <nav>
-            <NavItem icon={<Settings size={20} />}     label="Settings"       />
-            <NavItem icon={<Flag size={20} />}         label="Report history" />
-            <NavItem icon={<HelpCircle size={20} />}   label="Help"           />
-            <NavItem icon={<MessageSquare size={20} />} label="Send feedback" />
+            <NavItem icon={<Settings size={20} />}   label="Settings"       href="/settings" />
+            <a
+              href="https://www.youtube.com/reporthistory"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-6 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[#f2f2f2] transition-colors text-[#0f0f0f]"
+            >
+              <span className="w-6 flex items-center justify-center shrink-0"><Flag size={20} /></span>
+              <span className="truncate">Report history</span>
+            </a>
+            <a
+              href="https://support.google.com/youtube"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-6 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[#f2f2f2] transition-colors text-[#0f0f0f]"
+            >
+              <span className="w-6 flex items-center justify-center shrink-0"><HelpCircle size={20} /></span>
+              <span className="truncate">Help</span>
+            </a>
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="flex items-center gap-6 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[#f2f2f2] transition-colors text-[#0f0f0f]"
+            >
+              <span className="w-6 flex items-center justify-center shrink-0"><MessageSquare size={20} /></span>
+              <span className="truncate">Send feedback</span>
+            </button>
           </nav>
+
+          {/* ── Feedback modal ────────────────────────────────────────────── */}
+          {showFeedback && (
+            <>
+              <div
+                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+                onClick={() => setShowFeedback(false)}
+              />
+              <div className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+                {/* header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
+                  <span className="font-semibold text-[#0f0f0f] text-base">Send feedback to YouTube</span>
+                  <button
+                    onClick={() => setShowFeedback(false)}
+                    className="text-[#606060] hover:text-[#0f0f0f] transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {feedbackSent ? (
+                  <div className="px-5 py-10 flex flex-col items-center gap-3 text-center">
+                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                      <Check size={24} className="text-green-600" />
+                    </div>
+                    <p className="font-semibold text-[#0f0f0f]">Thanks for your feedback!</p>
+                    <p className="text-sm text-[#606060]">We&apos;ll use it to improve YouTube.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="px-5 py-4">
+                      <p className="text-sm text-[#606060] mb-3">
+                        Describe your feedback. We read all feedback carefully, but we are unable to respond to individual submissions.
+                      </p>
+                      <textarea
+                        value={feedbackText}
+                        onChange={e => setFeedbackText(e.target.value)}
+                        placeholder="Tell us what you think..."
+                        rows={5}
+                        className="w-full border border-[#ccc] rounded-lg px-3 py-2 text-sm text-[#0f0f0f] resize-none focus:outline-none focus:border-[#065fd4] focus:ring-1 focus:ring-[#065fd4] transition-colors"
+                      />
+                      <p className="text-xs text-[#606060] mt-1 text-right">{feedbackText.length} / 2000</p>
+                    </div>
+                    <div className="flex justify-end gap-2 px-5 pb-4">
+                      <button
+                        onClick={() => setShowFeedback(false)}
+                        className="px-4 py-2 rounded-full text-sm font-medium text-[#0f0f0f] hover:bg-[#f2f2f2] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={sendFeedback}
+                        disabled={!feedbackText.trim()}
+                        className="px-4 py-2 rounded-full text-sm font-medium bg-[#065fd4] text-white hover:bg-[#0559c0] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
 
           {/* ── Footer ───────────────────────────────────────────────────── */}
           <div className="mt-4 px-3">
