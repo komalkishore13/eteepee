@@ -218,6 +218,7 @@ export default function Sidebar() {
             <NavItem
               icon={<span className="text-[#FF0000]"><Youtube size={20} /></span>}
               label="YouTube Premium"
+              href="/youtube-premium"
             />
             <NavItem
               icon={<span className="text-[#FF0000]"><Youtube size={20} /></span>}
