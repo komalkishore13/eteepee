@@ -220,18 +220,6 @@ export default function Sidebar() {
               label="YouTube Premium"
               href="/youtube-premium"
             />
-            <NavItem
-              icon={<span className="text-[#FF0000]"><Youtube size={20} /></span>}
-              label="YouTube Studio"
-            />
-            <NavItem
-              icon={<span className="text-[#FF0000]"><Music2 size={20} /></span>}
-              label="YouTube Music"
-            />
-            <NavItem
-              icon={<span className="text-[#FF0000]"><Youtube size={20} /></span>}
-              label="YouTube Kids"
-            />
           </nav>
 
           {/* ── Settings & help ──────────────────────────────────────────── */}
