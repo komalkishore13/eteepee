@@ -91,3 +91,34 @@ input:focus {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+/* Shorts slide transitions */
+@keyframes slideInFromBottom {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes slideInFromTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes slideOutToTop {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(-100%); opacity: 0; }
+}
+@keyframes slideOutToBottom {
+  from { transform: translateY(0);   opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+.shorts-slide-in-bottom {
+  animation: slideInFromBottom 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.shorts-slide-in-top {
+  animation: slideInFromTop 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.shorts-slide-out-top {
+  animation: slideOutToTop 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.shorts-slide-out-bottom {
+  animation: slideOutToBottom 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
