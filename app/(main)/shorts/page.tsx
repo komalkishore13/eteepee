@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { mockVideos } from "@/data/videos";
+import { shortsData } from "@/data/shorts";
 import {
   ThumbsUp,
   ThumbsDown,
@@ -16,14 +16,7 @@ import {
 import Image from "next/image";
 import { useSidebar } from "@/components/youtube/SidebarContext";
 
-const likeCounts =    [47200, 128400, 892100, 23400, 445000, 67800, 311200,  88400, 1230000,  56700, 234500, 765400, 2100000, 43200, 189300, 423100, 112400, 945300,  87600, 321000];
-const commentCounts = [ 1240,   5670,  23400,   890,   8900,  2340,   6780,   1890,   34500,   2100,   7890,  12400,   45600,  1560,   4320,   8900,   3210,  21000,   2340,   9870];
-
-const shorts = mockVideos.map((video, i) => ({
-  ...video,
-  likes: likeCounts[i] ?? 50000,
-  comments: commentCounts[i] ?? 2000,
-}));
+const shorts = shortsData;
 
 function formatNum(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
