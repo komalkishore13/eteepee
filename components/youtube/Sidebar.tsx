@@ -37,13 +37,13 @@ import Image from "next/image";
 
 // ── Default subscribed channels ──────────────────────────────────────────────
 const SUBSCRIPTIONS = [
-  { name: "MrBeast",         seed: "MRB", color: "#e74c3c", hasNew: true  },
-  { name: "Fireship",        seed: "FRP", color: "#e67e22", hasNew: false },
-  { name: "Mark Rober",      seed: "MRO", color: "#3498db", hasNew: true  },
-  { name: "Kurzgesagt",      seed: "KZG", color: "#9b59b6", hasNew: false },
-  { name: "Veritasium",      seed: "VRT", color: "#2ecc71", hasNew: true  },
-  { name: "Linus Tech Tips", seed: "LTT", color: "#1abc9c", hasNew: false },
-  { name: "MKBHD",           seed: "MKB", color: "#e91e63", hasNew: true  },
+  { name: "MrBeast",         seed: "MRB", color: "#e74c3c", hasNew: true,  url: "https://www.youtube.com/@MrBeast"        },
+  { name: "Fireship",        seed: "FRP", color: "#e67e22", hasNew: false, url: "https://www.youtube.com/@Fireship"       },
+  { name: "Mark Rober",      seed: "MRO", color: "#3498db", hasNew: true,  url: "https://www.youtube.com/@MarkRober"      },
+  { name: "Kurzgesagt",      seed: "KZG", color: "#9b59b6", hasNew: false, url: "https://www.youtube.com/@kurzgesagt"     },
+  { name: "Veritasium",      seed: "VRT", color: "#2ecc71", hasNew: true,  url: "https://www.youtube.com/@veritasium"     },
+  { name: "Linus Tech Tips", seed: "LTT", color: "#1abc9c", hasNew: false, url: "https://www.youtube.com/@LinusTechTips"  },
+  { name: "MKBHD",           seed: "MKB", color: "#e91e63", hasNew: true,  url: "https://www.youtube.com/@mkbhd"          },
 ];
 
 // ── Small helpers ─────────────────────────────────────────────────────────────
@@ -152,9 +152,11 @@ export default function Sidebar() {
           {subsExpanded && (
             <nav className="mt-1">
               {SUBSCRIPTIONS.map(ch => (
-                <Link
+                <a
                   key={ch.name}
-                  href="#"
+                  href={ch.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-[#f2f2f2] transition-colors"
                 >
                   {/* avatar */}
@@ -170,7 +172,7 @@ export default function Sidebar() {
                     )}
                   </div>
                   <span className="truncate text-sm font-medium text-[#0f0f0f]">{ch.name}</span>
-                </Link>
+                </a>
               ))}
             </nav>
           )}
