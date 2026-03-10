@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { useSidebar } from "@/components/youtube/SidebarContext";
 import type { JWTPayload } from "@/lib/jwt";
 
 interface HeaderProps {
@@ -20,6 +21,7 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
+  const { toggle } = useSidebar();
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -53,7 +55,7 @@ export default function Header({ user }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 bg-white border-b border-transparent">
       {/* Left: Logo */}
       <div className="flex items-center gap-4">
-        <button className="p-2 rounded-full hover:bg-[#f2f2f2] transition">
+        <button onClick={toggle} className="p-2 rounded-full hover:bg-[#f2f2f2] transition">
           <Menu size={20} className="text-[#0f0f0f]" />
         </button>
 
